@@ -1,0 +1,132 @@
+version: "3"
+services:
+  portainer:
+    image: "portainer/portainer"
+    container_name: portainer
+    ports:
+    - 8510:9000
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ${CONF_DIR}/portainer:/data
+    command: -H unix:///var/run/docker.sock
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=portainer"
+      - "traefik.frontend.rule=Host:portainer.${DOMAIN_NAME}"  
+#      - "traefik.frontend.rule=Host:${DOMAIN_NAME}; PathPrefixStrip: /portainer"
+      - "traefik.port=9000"
+      - "traefik.docker.network=traefik_proxy"
+#      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+    restart: always
+  heimdall:
+    image: linuxserver/heimdall
+    container_name: heimdall
+    ports:
+    - 8520:80
+    - 8521:443
+    volumes:
+    - ${CONF_DIR}/heimdall:/config
+    environment:
+    - PUID=${PUID}
+    - PGID=${PGID}
+    - TZ=${TZ}
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=heimdall"
+      - "traefik.frontend.rule=Host:heimdall.${DOMAIN_NAME}"  
+#      - "traefik.frontend.rule=Host:${DOMAIN_NAME}; PathPrefixStrip: /heimdall"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+#      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+    restart: unless-stopped
+  transmission:
+    image: linuxserver/transmission
+    container_name: transmission
+    ports:
+    - 8530:9091
+    - 8531:51413
+    - 8532:51413/udp
+    volumes:
+    - ${CONF_DIR}/transmission:/config
+    - ${DATA_DIR}/downloads/transmission:/downloads
+    environment:
+    - PUID=${PUID}
+    - PGID=${PGID}
+    - TZ=${TZ}
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=transmission"
+      - "traefik.frontend.rule=Host:transmission.${DOMAIN_NAME}"  
+#      - "traefik.frontend.rule=Host:${DOMAIN_NAME}; PathPrefixStrip: /transmission"
+      - "traefik.port=9091"
+      - "traefik.docker.network=traefik_proxy"
+#      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+    restart: unless-stopped
+  calibre-web:
+    image: linuxserver/calibre-web
+    container_name: calibre-web
+    ports:
+    - 8540:8083
+    volumes:
+    - ${CONF_DIR}/calibre:/config
+    - "${WANG_DIR}/books/calibre/Calibre Library:/books"
+    environment:
+    - PUID=${PUID}
+    - PGID=${PGID}
+    - CONTAINER_TIMEZONE=${TZ}
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=calibre"
+      - "traefik.frontend.rule=Host:calibre.${DOMAIN_NAME}"  
+#      - "traefik.frontend.rule=Host:${DOMAIN_NAME}; PathPrefixStrip: /calibre"
+      - "traefik.port=8083"
+      - "traefik.docker.network=traefik_proxy"
+#      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+    restart: always
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy
+  default:
+    driver: bridge
+
