@@ -59,13 +59,44 @@ services:
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=true"
     restart: unless-stopped
+  aria2:
+    image: xujinkai/aria2-with-webui
+    container_name: aria2
+    ports:
+    - 8530:80
+    - 8531:8080
+    - 8532:6800
+    volumes:
+    - ${CONF_DIR}/aria2:/conf
+    - ${DATA_DIR}/downloads/aria2:/data
+    environment:
+    - SECRET=${ARIA2_SECRET}
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=aria2"
+      - "traefik.frontend.rule=Host:aria2.${DOMAIN_NAME}"  
+#      - "traefik.frontend.rule=Host:${DOMAIN_NAME}; PathPrefixStrip: /aria2"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+#      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=true"
+    restart: always
   transmission:
     image: linuxserver/transmission
     container_name: transmission
     ports:
-    - 8530:9091
-    - 8531:51413
-    - 8532:51413/udp
+    - 8540:9091
+    - 8541:51413
+    - 8542:51413/udp
     volumes:
     - ${CONF_DIR}/transmission:/config
     - ${DATA_DIR}/downloads/transmission:/downloads
@@ -96,7 +127,7 @@ services:
     image: linuxserver/calibre-web
     container_name: calibre-web
     ports:
-    - 8540:8083
+    - 8600:8083
     volumes:
     - ${CONF_DIR}/calibre:/config
     - "${WANG_DIR}/books/calibre/Calibre Library:/books"
